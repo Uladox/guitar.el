@@ -117,33 +117,34 @@
   (guitar-start-repl)
   (guitar-pipe "(require 'guitar.core)"))
 
-(defun guitar-key-func (key-name)
+(defun guitar-key-func (key-name note)
   (eval `(lambda ()
 	   (interactive)
-	   (guitar-pipe-safe ,key-name)
-	   (switch-to-buffer "*Guitar-mode*"))))
+	   (if (and (string= guitar-flat-norm-sharp "b") (string= ,note ":F"))
+	       nil
+	     (progn 
+	       (guitar-pipe-safe ,key-name)
+	       (switch-to-buffer "*Guitar-mode*"))))))
 
 (defun guitar-play (note cord)
-   (if (and (string= guitar-flat-norm-sharp "#") (string= note ":F"))
-       nil
      (guitar-key-func `(concat "(guitar.core/key-setup "
 			       ,note
 			       guitar-flat-norm-sharp
 			       (number-to-string guitar-octave)
 			       " "
 			       ,cord
-			       ")"))))
+			       ")")
+		      note))
 
 (defun guitar-play-greater (note cord)
-  (if (and (string= guitar-flat-norm-sharp "#") (string= note ":F"))
-      nil
     (guitar-key-func `(concat "(guitar.core/key-setup "
 			      ,note
 			      guitar-flat-norm-sharp
 			      (number-to-string (+ guitar-octave 1))
 			      " "
 			      ,cord
-			      ")"))))
+			      ")")
+		     note))
 
 ; I am way too lazy to define all octaves manually
 (defun guitar-switch-octave (octave-number)
@@ -303,7 +304,7 @@
   "Major mode for turning Emacs into a musical instrument"
   (interactive)
   (kill-all-local-variables)
-  (guitar-mode-setup "~/.emacs.d/guitar")
+  (guitar-mode-setup (concat +guitar-directory+ "/guitar"))
   (switch-to-buffer (get-buffer-create "*Guitar-mode*"))
   (delete-other-windows)
   (setq cursor-type nil)
